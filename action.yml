@@ -36,6 +36,10 @@ inputs:
     description: "Retag and Push"
     required: false
     default: ''
+  PUSH:
+    description: "true/false"
+    required: false
+    default: 'false'     
 outputs:
   tag:
     description: "The Found Tag"
@@ -95,6 +99,12 @@ runs:
       if: ${{ inputs.RETAG }} != ''
       shell: bash
       run: |
-        docker pull ${{ steps.tag.outputs.image }}
+        if [[ ! ${{ fromJSON(inputs.PULL) }} ]]
+        then
+          docker pull ${{ steps.tag.outputs.image }}
+        fi
         docker tag ${{ steps.tag.outputs.image }} ${{ inputs.RETAG }}
-        docker push ${{ inputs.RETAG }}
+        if [[ ${{ fromJSON(inputs.PUSH) }} ]]
+        then
+          docker push ${{ inputs.RETAG }}
+        fi
