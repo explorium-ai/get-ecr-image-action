@@ -30,11 +30,11 @@ inputs:
     default: 'contains'      
   PULL:
     description: "true/false"
-    required: true
+    required: false
     default: 'false'     
   RETAG:
     description: "Retag and Push"
-    required: true
+    required: false
     default: ''
 outputs:
   tag:
