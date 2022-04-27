@@ -1,0 +1,100 @@
+name: 'Get Ecr Image'
+description: 'Get Latest ECR Image from a repository that contains a specific TAG'
+branding:
+  icon: upload-cloud
+  color: red
+inputs:
+  AWS_ACCESS_KEY_ID:
+    description: 'AWS_ACCESS_KEY_ID'
+    required: true
+    default: ""
+  AWS_SECRET_ACCESS_KEY:
+    description: 'AWS_SECRET_ACCESS_KEY'
+    required: true
+    default: ""    
+  REGION:
+    description: "REGION"
+    required: true
+    default: 'eu-west-1'
+  REPOSITORY:
+    description: "REPOSITORY"
+    required: true
+    default: ''    
+  TAG:
+    description: "TAG"
+    required: true
+    default: 'latest'       
+  METHOD:
+    description: "contains/equals"
+    required: true
+    default: 'contains'      
+  PULL:
+    description: "true/false"
+    required: true
+    default: 'false'     
+  RETAG:
+    description: "Retag and Push"
+    required: true
+    default: ''
+outputs:
+  tag:
+    description: "The Found Tag"
+    value: ${{ steps.tag.outputs.tag }}
+  image:
+    description: "The Full Image Name"
+    value: ${{ steps.tag.outputs.image }}
+runs:
+  using: "composite"
+  steps:
+    - name: Configure AWS credentials
+      uses: aws-actions/configure-aws-credentials@v1
+      with:
+        aws-access-key-id: ${{ inputs.AWS_ACCESS_KEY_ID_ECR_USER }}
+        aws-secret-access-key: ${{ inputs.AWS_SECRET_ACCESS_KEY_ECR_USER }}
+        aws-region: ${{ inputs.REGION }}
+        
+    - name: Login to Amazon ECR
+      id: login-ecr
+      uses: aws-actions/amazon-ecr-login@v1
+
+    - name: Get Image Tag
+      id: tag
+      shell: bash
+      run: |
+        if [[ ${{ inputs.METHOD }} == 'contains' ]]
+        then
+          tag=$(aws ecr describe-images --repository-name ${{ inputs.REPOSITORY }} --query "sort_by(imageDetails,& imagePushedAt)[ * ].imageTags[ * ]" \
+            | grep ${{ inputs.TAG }} \
+            | tail -n 1 \
+            | tr -d '", ')
+        elif [[ ${{ inputs.METHOD }} == 'equals' ]]
+        then
+          tag=$(aws ecr describe-images \
+            --region eu-west-1 \
+            --repository-name data-service \
+            --filter tagStatus=TAGGED \
+            | jq -c '.imageDetails[] | select([.imageTags[] == ${{ inputs.TAG }}] | any)')
+          if [ ! "$empty" ];then
+            tag=""
+          else
+            tag=$(echo ${{ inputs.TAG }}])
+          fi
+        else
+          echo "Please Provide a Method to compare"
+          exit 1
+        fi
+        registry=$(aws ecr describe-registry | jq .registryId | tr -d '"')
+        echo "::set-output name=tag::$(echo $tag)"
+        echo "::set-output name=image::$(echo $registry.dkr.ecr.${{ inputs.REGION }}.amazonaws.com/${{ inputs.REPOSITORY }}:$tag)"
+    - name: Pull
+      if: ${{ fromJSON(inputs.PULL) }}
+      run: |
+        docker pull ${{ steps.tag.outputs.image }}
+      shell: bash
+    - name: Retag
+      if: ${{ inputs.RETAG }} != ''
+      shell: bash
+      run: |
+        docker pull ${{ steps.tag.outputs.image }}
+        docker tag ${{ steps.tag.outputs.image }} ${{ inputs.RETAG }}
+        docker push ${{ inputs.RETAG }}
