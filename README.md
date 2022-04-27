@@ -22,6 +22,7 @@ Query and get latest ECR image of a specific tag and pull it if needed
     METHOD: contains
     PULL: true
     RETAG: localhost:5000/my-service:github
+    PUSH: true
 - name: Get Outputs
   run: |
     echo ${{ steps.ecr.outputs.image }}
