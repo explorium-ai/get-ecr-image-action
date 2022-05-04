@@ -65,20 +65,20 @@ runs:
       id: tag
       shell: bash
       run: |
-        if [[ ${{ inputs.METHOD }} == 'contains' ]]
+        if [ ${{ inputs.METHOD }} == 'contains' ]
         then
           tag=$(aws ecr describe-images --repository-name ${{ inputs.REPOSITORY }} --query "sort_by(imageDetails,& imagePushedAt)[ * ].imageTags[ * ]" \
             | grep ${{ inputs.TAG }} \
             | tail -n 1 \
             | tr -d '", ')
-        elif [[ ${{ inputs.METHOD }} == 'equals' ]]
+        elif [ ${{ inputs.METHOD }} == 'equals' ]
         then
           tag=$(aws ecr describe-images \
             --region eu-west-1 \
             --repository-name data-service \
             --filter tagStatus=TAGGED \
             | jq -c '.imageDetails[] | select([.imageTags[] == ${{ inputs.TAG }}] | any)')
-          if [ ! "$empty" ];then
+          if [[ !"$empty" -eq true ]];then
             tag=""
           else
             tag=$(echo ${{ inputs.TAG }}])
