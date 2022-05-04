@@ -78,7 +78,7 @@ runs:
             --repository-name data-service \
             --filter tagStatus=TAGGED \
             | jq -c '.imageDetails[] | select([.imageTags[] == ${{ inputs.TAG }}] | any)')
-          if [ !"$empty" -eq true ];then
+          if !"$empty";then
             tag=""
           else
             tag=$(echo ${{ inputs.TAG }}])
