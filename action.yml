@@ -99,7 +99,7 @@ runs:
       if: ${{ inputs.RETAG }} != ''
       shell: bash
       run: |
-        if !${{ fromJSON(inputs.PULL) }}
+        if ! [ $(${{ fromJSON(inputs.PULL) }}) ]
         then
           docker pull ${{ steps.tag.outputs.image }}
         fi
