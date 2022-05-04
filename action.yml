@@ -78,7 +78,7 @@ runs:
             --repository-name data-service \
             --filter tagStatus=TAGGED \
             | jq -c '.imageDetails[] | select([.imageTags[] == ${{ inputs.TAG }}] | any)')
-          if !"$empty";then
+          if [ ! "$empty" ];then
             tag=""
           else
             tag=$(echo ${{ inputs.TAG }}])
@@ -99,12 +99,12 @@ runs:
       if: ${{ inputs.RETAG }} != ''
       shell: bash
       run: |
-        if [[ ! ${{ fromJSON(inputs.PULL) }} ]]
+        if !${{ fromJSON(inputs.PULL) }}
         then
           docker pull ${{ steps.tag.outputs.image }}
         fi
         docker tag ${{ steps.tag.outputs.image }} ${{ inputs.RETAG }}
-        if [[ ${{ fromJSON(inputs.PUSH) }} ]]
+        if ${{ fromJSON(inputs.PUSH) }}
         then
           docker push ${{ inputs.RETAG }}
         fi
