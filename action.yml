@@ -1,6 +1,8 @@
 name: 'Get Ecr Image'
 description: 'Get Latest ECR Image from a repository that contains a specific TAG'
-
+branding:
+  icon: box
+  color: blue
 inputs:
   AWS_ACCESS_KEY_ID:
     description: 'AWS_ACCESS_KEY_ID'
