@@ -75,7 +75,7 @@ runs:
         then
           tag=$(aws ecr describe-images \
             --region eu-west-1 \
-            --repository-name data-service \
+            --repository-name ${{ inputs.REPOSITORY }} \
             --filter tagStatus=TAGGED \
             | jq -c '.imageDetails[] | select([.imageTags[] == ${{ inputs.TAG }}] | any)')
           if [ ! "$empty" ];then
